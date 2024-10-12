@@ -1,28 +1,42 @@
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 import BookList from './components/BookList';
 import BookCreate from './components/BookCreate';
+import axios from 'axios';
 function App(){
     const [book,setBook] = useState([]);
     
-    const createBook =(title) =>{
+    const createBook =async (title) =>{
+        const response = await axios.post('http://localhost:3001/books',{
+            title
+        });
         const updatedBooks =[
             ...book,
-            {id:Math.round(Math.random()*9999),title}
+            response.data,
         ]
         setBook(updatedBooks);
     }
-    const deleteBookById = (id)=>{
+    const fetchBooks = async()=>{
+        const response = await axios.get('http://localhost:3001/books');
+        setBook(response.data);
+    }
+    const deleteBookById = async(id)=>{
+        const response = await axios.delete(`http://localhost:3001/books/${id}`);
         const updatedBooks = book.filter((boo)=>{
             return boo.id !== id;
         })
         setBook(updatedBooks);
     }
-    const onEdit = (id,newTitle) =>{
+    useEffect(()=>{
+        fetchBooks();
+    },[])
+    const onEdit = async(id,newTitle) =>{
+        const response = await axios.put(`http://localhost:3001/books/${id}`,{
+            title:newTitle
+        });
         const updatedBooks = book.map((boo)=>{
-
             if(boo.id===id)
                 {
-                    return {...boo, title:newTitle}
+                    return {...boo, ...response.data}
                 }
             return boo;
         })
